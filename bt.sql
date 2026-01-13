@@ -112,35 +112,50 @@ WHERE TotalStudents = (
 
 -- Câu 5
 -- a)
--- Xóa procedure nếu đã tồn tại
+-- a) Tạo Stored Procedure
 DROP PROCEDURE IF EXISTS GetTopScoreStudent;
 
--- Đổi delimiter
 DELIMITER //
 
--- Tạo Stored Procedure
 CREATE PROCEDURE GetTopScoreStudent(IN p_CourseID CHAR(6))
 BEGIN
     SELECT 
         s.StudentID,
         s.FullName,
-        sc.Score
+        e.Score
     FROM Student s
-    JOIN Score sc ON s.StudentID = sc.StudentID
-    WHERE sc.CourseID = p_CourseID
-      AND sc.Score = (
+    JOIN Enrollment e ON s.StudentID = e.StudentID
+    WHERE e.CourseID = p_CourseID
+      AND e.Score = (
+          -- Lấy điểm cao nhất cụ thể của môn học đó
           SELECT MAX(Score)
-          FROM Score
+          FROM Enrollment
           WHERE CourseID = p_CourseID
       );
 END //
 
--- Trả delimiter về mặc định
 DELIMITER ;
 
+-- b) Gọi thủ tục để tìm sinh viên điểm cao nhất môn C00001
 CALL GetTopScoreStudent('C00001');
 
 -- Câu 6
+
+-- Câu 6a: Tạo View View_IT_Enrollment_DB
+CREATE OR REPLACE VIEW View_IT_Enrollment_DB AS
+SELECT 
+    e.StudentID, 
+    e.CourseID, 
+    e.Score, 
+    s.DeptID
+FROM Enrollment e
+JOIN Student s ON e.StudentID = s.StudentID
+WHERE s.DeptID = 'IT' 
+  AND e.CourseID = 'C00001'
+WITH CHECK OPTION;
+
+-- Truy vấn kiểm tra View
+SELECT * FROM View_IT_Enrollment_DB;
 
 
 
